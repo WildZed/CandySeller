@@ -5,6 +5,9 @@
 # 16th October 2016: You dream about a monster. When you wake up, it all felt so real... You prepare for another candy-selling day. You spot something green in the shop window and are sure you had seen it before... The letter 'Q' pops into your head.
 
 import random, sys, time, math, pygame
+
+sys.path.append( '../GameEngine' )
+
 from pygame.locals import *
 from geometry import *
 import viewport, game, game_map, game_dynamics
@@ -283,7 +286,7 @@ class CandySeller( game.Game ):
         player = gameMap.player
 
         # Update the player man.
-        player.update( viewPort.camera, self.gameOverMode, self.invulnerableMode )
+        player.update( viewPort.camera, gameOverMode=self.gameOverMode, invulnerableMode=self.invulnerableMode )
 
 
     def run( self ):
