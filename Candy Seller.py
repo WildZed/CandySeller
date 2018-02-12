@@ -154,7 +154,7 @@ class CandySeller( game.Game ):
 
 
     def createMonster( self ):
-        return Monster( Point( 0, 0 ), gameMap.images.jumpscare_monster, size=MONSTERSIZE, ratio=1.4 )
+        return Monster( Point( 0, 0 ), self.gameMap.images.jumpscare_monster, size=MONSTERSIZE, ratio=1.0 )
 
 
     # Could move cursor description into a file and read from there.
@@ -215,11 +215,13 @@ class CandySeller( game.Game ):
                 gameMap.deleteAllObjectsOfType( 'Monster' )
             elif event.key is K_i:
                 viewPort.resetCamera()
-                player.pushPos( Point( viewPort.halfWidth, viewPort.halfHeight ), offsetOldPos=Point( 0, 20 ) )
                 gameMap.changeScene( 'insideShop1' )
+                player.pushPos( Point( viewPort.halfWidth, viewPort.halfHeight ), offsetOldPos=Point( 0, 20 ) )
+                gameMap.movePlayerToScene( player, 'insideShop1' )
             elif event.key is K_o:
-                player.popPos()
                 gameMap.changeScene( 'shops' )
+                player.popPos()
+                gameMap.movePlayerToScene( player, 'shops' )
         elif event.type == MOUSEBUTTONUP:
             if None is self.dragPos:
                 arrow = gameMap.objectsOfType( 'Arrow' )[0]
@@ -267,6 +269,7 @@ class CandySeller( game.Game ):
                 viewPort.resetCamera()
                 player.pushPos( Point( viewPort.halfWidth, viewPort.halfHeight ), offsetOldPos=Point( 0, 20 ) )
                 gameMap.changeScene( 'insideShop1' )
+                gameMap.movePlayerToScene( player, 'insideShop1' )
 
         # Update the money score.
         gameMap.score.updateScore( self.moneyScore )
