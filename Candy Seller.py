@@ -234,45 +234,47 @@ class CandySeller( game.Game ):
     def updateState( self ):
         game.Game.updateState( self )
 
+        if self.gameOverMode:
+            return
+
         viewPort = self.viewPort
         gameMap = self.gameMap
         player = gameMap.player
 
-        # Wins the game if you get 100 money.
-        if self.moneyScore >= 100:
-            self.winMode = True
+        # Move the player according to the movement instructions.
+        player.move()
 
-        if not self.gameOverMode:
-            # Move the player according to the movement instructions.
-            player.move()
+        # If the man has walked a certain distance then make a new coin.
+        if player.steps >= 400:
+            self.createCoins( gameMap, 1 )
+            player.steps = 0
 
-            # If the man has walked a certain distance then make a new coin.
-            if player.steps >= 400:
-                self.createCoins( gameMap, 1 )
-                player.steps = 0
+        # Check if the player has collided with any money.
+        money = gameMap.objectsOfType( 'Coin' )
 
-            # Check if the player has collided with any money.
-            money = gameMap.objectsOfType( 'Coin' )
+        for ii in range( len( money ) - 1, -1, -1 ):
+            coin = money[ii]
 
-            for ii in range( len( money ) - 1, -1, -1 ):
-                coin = money[ii]
+            if player.collidesWithRect( coin ):
+                # A player/money collision has occurred.
+                coin.delete()
+                self.moneyScore += 1
+                viewPort.playMusic()
 
-                if player.collidesWith( coin ):
-                    # A player/money collision has occurred.
-                    del money[ii]
-                    self.moneyScore += 1
-                    viewPort.playMusic()
+        shops = gameMap.objectsOfType( 'Shop' )
 
-            shops = gameMap.objectsOfType( 'Shop' )
-
-            if shops and len( shops ) == 3 and player.collidesWith( shops[1] ):
-                viewPort.resetCamera()
-                player.pushPos( Point( viewPort.halfWidth, viewPort.halfHeight ), offsetOldPos=Point( 0, 20 ) )
-                gameMap.changeScene( 'insideShop1' )
-                gameMap.movePlayerToScene( player, 'insideShop1' )
+        if shops and len( shops ) > 1 and player.collidesWith( shops[1] ):
+            viewPort.resetCamera()
+            player.pushPos( Point( viewPort.halfWidth, viewPort.halfHeight ), offsetOldPos=Point( 0, 20 ) )
+            gameMap.changeScene( 'insideShop1' )
+            gameMap.movePlayerToScene( player, 'insideShop1' )
 
         # Update the money score.
         gameMap.score.updateScore( self.moneyScore )
+
+        # Wins the game if you get 100 money.
+        if self.moneyScore >= 100:
+            self.winMode = True
 
         # Adjust camera if beyond the "camera slack".
         playerCentre = Point( player.x + int( ( float( player.size ) + 0.5 ) / 2 ), player.y + int( ( float( player.size ) + 0.5 ) / 2 ) )
