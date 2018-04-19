@@ -46,23 +46,9 @@ class CandySeller( game.Game ):
         game.Game.__init__( self, 'Candy Seller', 'gameiconc.png', viewPort )
 
         # Game one time setup.
-        self.setDrawOrder( 'BackGround', 'Shop', 'Arrow', 'Bush', 'Coin', 'Player', 'Score', 'Monster' )
-        self.setCameraUpdates( 'BackGround', 'Shop', 'Arrow', 'Bush', 'Coin' )
+        self.setDrawOrder( 'BackGround', 'Shop', 'Arrow', 'Bush', 'Coin', 'Player', 'Monster', 'Score' )
         self.setCursor()
         viewPort.loadMusic( 'Money Ping.ogg' )
-
-
-    # Per game initialisation.
-    def init( self ):
-        game.Game.init( self )
-
-        self.winMode = False           # If the player has won.
-        self.invulnerableMode = False  # If the player is invulnerable.
-        self.invulnerableStartTime = 0 # Time the player became invulnerable.
-        self.gameOverMode = False      # If the player has lost.
-        self.gameOverStartTime = 0     # Time the player lost.
-        self.moneyScore = 0
-        self.gameMap = self.createMap()
 
 
     def loadImages( self ):
@@ -79,9 +65,22 @@ class CandySeller( game.Game ):
         return images
 
 
-    def createMap( self ):
+    # Per game initialisation.
+    def init( self ):
+        self.winMode = False           # If the player has won.
+        self.invulnerableMode = False  # If the player is invulnerable.
+        self.invulnerableStartTime = 0 # Time the player became invulnerable.
+        self.gameOverMode = False      # If the player has lost.
+        self.gameOverStartTime = 0     # Time the player lost.
+        self.moneyScore = 0
+        self.player = None
+
+        game.Game.init( self )
+
+
+    def initMap( self ):
         viewPort = self.viewPort
-        gameMap = game_map.Map()
+        gameMap = self.gameMap
         images = self.images
 
         gameMap.setImageStore( images )
@@ -111,9 +110,9 @@ class CandySeller( game.Game ):
         gameMap.changeScene( 'shops' )
 
         gameMap.addOverlay( Score( Point( viewPort.width - 180, 20 ), self.moneyScore ) )
-        gameMap.addPlayer( self.createPlayer() )
 
-        return gameMap
+        self.player = self.createPlayer()
+        gameMap.addObject( self.player )
 
 
     def createPlayer( self ):
@@ -124,7 +123,7 @@ class CandySeller( game.Game ):
 
         # Sets up the movement style of the player.
         # playerBounds = game_dynamics.RectangleBoundary( Rectangle( Point( 0, 220 ), Point( 900, 550 ) ) )
-        playerBounds = game_dynamics.CollisionBoundary( viewPort )
+        playerBounds = game_dynamics.CollisionBoundary()
         moveStyle = game_dynamics.KeyMovementStyle( boundaryStyle=playerBounds )
         moveStyle.setMoveRate( MOVERATE )
         moveStyle.setBounceRates( BOUNCERATE, BOUNCEHEIGHT )
@@ -135,7 +134,7 @@ class CandySeller( game.Game ):
     def createShops( self, gameMap ):
         for shopNum in range( 1, 4 ):
             shopPos = Point( 140 + ( shopNum - 1 ) * 320, 140 )
-            shop = Shop( shopPos, self.images.shops[shopNum], size=SHOPSIZE, positionStyle='centre' )
+            shop = Shop( shopPos, self.images.shops[shopNum], size=SHOPSIZE, positionStyle='centre', name='Shop' + `shopNum` )
             gameMap.addObject( shop )
 
 
@@ -189,16 +188,36 @@ class CandySeller( game.Game ):
         pygame.mouse.set_cursor( (24,24), (0,0), datatuple, masktuple )
 
 
+    def setSceneShop1( self ):
+        gameMap = self.gameMap
+
+        if gameMap.changeScene( 'insideShop1' ):
+            viewPort = self.viewPort
+            player = self.player
+            player.moveToScene( 'insideShop1' )
+            viewPort.resetCamera()
+            player.pushPos( Point( viewPort.halfWidth, viewPort.halfHeight ), offsetOldPos=Point( 0, 20 ) )
+
+
+    def setSceneShops( self ):
+        gameMap = self.gameMap
+
+        if gameMap.changeScene( 'shops' ):
+            player = self.player
+            player.popPos()
+            player.moveToScene( 'shops' )
+
+
     def processEvent( self, event ):
         game.Game.processEvent( self, event )
 
         viewPort = self.viewPort
         gameMap = self.gameMap
-        player = gameMap.player
+        player = self.player
 
         if event.type == KEYDOWN:
             # Check if the key moves the player in a given direction.
-            player.setMovement( event.key )
+            player.setMovement( key=event.key )
 
             if event.key == K_r and self.winMode:
                 self.running = False
@@ -209,19 +228,14 @@ class CandySeller( game.Game ):
                 gameMap.addSprite( monster )
         elif event.type == KEYUP:
             # Check if the key stops the player in a given direction.
-            player.stopMovement( event.key )
+            player.stopMovement( key=event.key )
 
             if event.key is K_q:
                 gameMap.deleteAllObjectsOfType( 'Monster' )
             elif event.key is K_i:
-                viewPort.resetCamera()
-                gameMap.changeScene( 'insideShop1' )
-                player.pushPos( Point( viewPort.halfWidth, viewPort.halfHeight ), offsetOldPos=Point( 0, 20 ) )
-                gameMap.movePlayerToScene( player, 'insideShop1' )
+                self.setSceneShop1()
             elif event.key is K_o:
-                gameMap.changeScene( 'shops' )
-                player.popPos()
-                gameMap.movePlayerToScene( player, 'shops' )
+                self.setSceneShops()
         elif event.type == MOUSEBUTTONUP:
             if None is self.dragPos:
                 arrow = gameMap.objectsOfType( 'Arrow' )[0]
@@ -229,6 +243,9 @@ class CandySeller( game.Game ):
                 # Does the click point collide with a colour that is not the background colour.
                 if viewPort.collisionOfPoint( self.clickPos, arrow ):
                     viewPort.playSound( 'Money Ping' )
+        elif event.type == COLLISION_EVENT:
+            if event.obj1.isInteractionTypePair( event.obj2, 'Player', 'Shop=Shop1' ):
+                self.setSceneShop1()
 
 
     def updateState( self ):
@@ -239,10 +256,7 @@ class CandySeller( game.Game ):
 
         viewPort = self.viewPort
         gameMap = self.gameMap
-        player = gameMap.player
-
-        # Move the player according to the movement instructions.
-        player.move()
+        player = self.player
 
         # If the man has walked a certain distance then make a new coin.
         if player.steps >= 400:
@@ -263,11 +277,11 @@ class CandySeller( game.Game ):
 
         shops = gameMap.objectsOfType( 'Shop' )
 
-        if shops and len( shops ) > 1 and player.collidesWith( shops[1] ):
+        if shops and len( shops ) > 1 and player.collidesWithRect( shops[1] ):
             viewPort.resetCamera()
             player.pushPos( Point( viewPort.halfWidth, viewPort.halfHeight ), offsetOldPos=Point( 0, 20 ) )
             gameMap.changeScene( 'insideShop1' )
-            gameMap.movePlayerToScene( player, 'insideShop1' )
+            player.moveToScene( 'insideShop1' )
 
         # Update the money score.
         gameMap.score.updateScore( self.moneyScore )
@@ -288,7 +302,7 @@ class CandySeller( game.Game ):
 
         viewPort = self.viewPort
         gameMap = self.gameMap
-        player = gameMap.player
+        player = self.player
 
         # Update the player man.
         player.update( viewPort.camera, gameOverMode=self.gameOverMode, invulnerableMode=self.invulnerableMode )
