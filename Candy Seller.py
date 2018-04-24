@@ -40,10 +40,8 @@ MONSTERSIZE = 800    # How big the jumpscare monster is.
 
 class CandySeller( game.Game ):
     def __init__( self, viewPort ):
-        self.images = self.loadImages()
-
         # Set up generic game one time set up.
-        game.Game.__init__( self, 'Candy Seller', 'gameiconc.png', viewPort )
+        game.Game.__init__( self, 'Candy Seller', 'gameiconc', viewPort )
 
         # Game one time setup.
         self.setDrawOrder( 'BackGround', 'Shop', 'Arrow', 'Bush', 'Coin', 'Player', 'Monster', 'Score' )
@@ -52,7 +50,7 @@ class CandySeller( game.Game ):
 
 
     def loadImages( self ):
-        images = game_map.ImageStore()
+        images = self.images
 
         images.load( 'man', 'LR' )
         images.load( 'bush' )
@@ -61,8 +59,6 @@ class CandySeller( game.Game ):
         images.load( 'money' )
         images.load( 'shop', range( 1, 4 ) )
         images.load( 'arrow', range( 1, 4 ) )
-
-        return images
 
 
     # Per game initialisation.
