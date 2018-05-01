@@ -81,7 +81,7 @@ class CandySeller( game.Game ):
 
         gameMap.setImageStore( images )
 
-        gameMap.createScene( 'shops', BACKGROUND_COLOUR )
+        gameMap.createScene( 'shops', backGroundColour=BACKGROUND_COLOUR )
 
         # Create scene objects.
 
@@ -98,9 +98,12 @@ class CandySeller( game.Game ):
         # Start off with some money on the screen.
         self.createCoins( gameMap, 4 )
 
-        gameMap.createScene( 'insideShop1', SHOP_FLOOR_COLOUR )
+        insideShop1 = SoftBackGround( ORIGIN, images.ingredients_store, size=WINWIDTH )
+        insideShop1Bounds = insideShop1.getRect()
+        shop1Bounds = game_dynamics.RectangleBoundary( insideShop1Bounds, grow=-10 )
+        gameMap.createScene( 'insideShop1', backGroundColour=SHOP_FLOOR_COLOUR, boundaryStyle=shop1Bounds )
         gameMap.changeScene( 'insideShop1' )
-        gameMap.addObject( BackGround( ORIGIN, images.ingredients_store, size=WINWIDTH ) )
+        gameMap.addObject( insideShop1 )
         self.createCoins( gameMap, 4 )
 
         gameMap.changeScene( 'shops' )
@@ -235,13 +238,30 @@ class CandySeller( game.Game ):
         elif event.type == MOUSEBUTTONUP:
             if None is self.dragPos:
                 arrow = gameMap.objectsOfType( 'Arrow' )[0]
+                wClickPos = viewPort.getWorldCoordinate( self.clickPos )
 
                 # Does the click point collide with a colour that is not the background colour.
-                if viewPort.collisionOfPoint( self.clickPos, arrow ):
+                if viewPort.collisionOfPoint( wClickPos, arrow ):
                     viewPort.playSound( 'Money Ping' )
         elif event.type == COLLISION_EVENT:
+            # print( 'Collision occurred: %s' % event )
+
             if event.obj1.isInteractionTypePair( event.obj2, 'Player', 'Shop=Shop1' ):
-                self.setSceneShop1()
+                collisionData = event.collisionData
+                collisionPoint = event.point
+                x = collisionPoint.x
+                y = collisionPoint.y
+                rect = event.obj2.getRect()
+                width = rect.right - rect.left
+                thirdWidth = width / 3
+                left = rect.left + thirdWidth
+                right = rect.right - thirdWidth
+                middle = rect.centery
+
+                # print( 'left %s right %s point %s' % ( left, right, collisionPoint ) )
+
+                if y > middle and x > left and x < right:
+                    self.setSceneShop1()
 
 
     def updateState( self ):
@@ -271,13 +291,13 @@ class CandySeller( game.Game ):
                 self.moneyScore += 1
                 viewPort.playMusic()
 
-        shops = gameMap.objectsOfType( 'Shop' )
-
-        if shops and len( shops ) > 1 and player.collidesWithRect( shops[1] ):
-            viewPort.resetCamera()
-            player.pushPos( Point( viewPort.halfWidth, viewPort.halfHeight ), offsetOldPos=Point( 0, 20 ) )
-            gameMap.changeScene( 'insideShop1' )
-            player.moveToScene( 'insideShop1' )
+        # shops = gameMap.objectsOfType( 'Shop' )
+        #
+        # if shops and len( shops ) > 1 and player.collidesWithRect( shops[1] ):
+        #     viewPort.resetCamera()
+        #     player.pushPos( Point( viewPort.halfWidth, viewPort.halfHeight ), offsetOldPos=Point( 0, 20 ) )
+        #     gameMap.changeScene( 'insideShop1' )
+        #     player.moveToScene( 'insideShop1' )
 
         # Update the money score.
         gameMap.score.updateScore( self.moneyScore )
@@ -316,7 +336,7 @@ class CandySeller( game.Game ):
 
 
 def main():
-    viewPort = viewport.ViewPort( WINWIDTH, WINHEIGHT )
+    viewPort = viewport.ViewPort( WINWIDTH, WINHEIGHT, topLeft=Point( 400, 80 ) )
     game = CandySeller( viewPort )
 
     while True:
