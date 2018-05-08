@@ -99,9 +99,9 @@ class CandySeller( game.Game ):
         self.createCoins( gameMap, 4 )
 
         insideShop1 = SoftBackGround( ORIGIN, images.ingredients_store, size=WINWIDTH )
-        insideShop1Bounds = insideShop1.getRect()
-        shop1Bounds = game_dynamics.RectangleBoundary( insideShop1Bounds, grow=-10 )
-        gameMap.createScene( 'insideShop1', backGroundColour=SHOP_FLOOR_COLOUR, boundaryStyle=shop1Bounds )
+        insideShop1Rect = insideShop1.getRect()
+        insideShop1Bounds = game_dynamics.RectangleBoundary( insideShop1Rect, grow=-10 )
+        gameMap.createScene( 'insideShop1', backGroundColour=SHOP_FLOOR_COLOUR, boundaryStyle=insideShop1Bounds )
         gameMap.changeScene( 'insideShop1' )
         gameMap.addObject( insideShop1 )
         self.createCoins( gameMap, 4 )
