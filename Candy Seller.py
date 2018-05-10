@@ -47,6 +47,7 @@ class CandySeller( game.Game ):
         self.setDrawOrder( 'BackGround', 'Shop', 'Arrow', 'Bush', 'Coin', 'Player', 'Monster', 'Score' )
         self.setCursor()
         viewPort.loadMusic( 'Money Ping.ogg' )
+        viewPort.setCameraMovementStyle( game_dynamics.KeyMovementStyle( moveRate=Vector( 20, 12 ) ) )
 
 
     def loadImages( self ):
@@ -133,7 +134,7 @@ class CandySeller( game.Game ):
     def createShops( self, gameMap ):
         for shopNum in range( 1, 4 ):
             shopPos = Point( 140 + ( shopNum - 1 ) * 320, 140 )
-            shop = Shop( shopPos, self.images.shops[shopNum], size=SHOPSIZE, positionStyle='centre', name='Shop' + `shopNum` )
+            shop = Shop( shopPos, self.images.shops[shopNum], size=SHOPSIZE, name='Shop' + `shopNum` )
             gameMap.addObject( shop )
 
 
@@ -215,9 +216,6 @@ class CandySeller( game.Game ):
         player = self.player
 
         if event.type == KEYDOWN:
-            # Check if the key moves the player in a given direction.
-            player.setMovement( key=event.key )
-
             if event.key == K_r and self.winMode:
                 self.running = False
             elif event.key is K_q:
@@ -226,9 +224,6 @@ class CandySeller( game.Game ):
                 monster = self.createMonster()
                 gameMap.addSprite( monster )
         elif event.type == KEYUP:
-            # Check if the key stops the player in a given direction.
-            player.stopMovement( key=event.key )
-
             if event.key is K_q:
                 gameMap.deleteAllObjectsOfType( 'Monster' )
             elif event.key is K_i:
@@ -236,16 +231,15 @@ class CandySeller( game.Game ):
             elif event.key is K_o:
                 self.setSceneShops()
         elif event.type == MOUSEBUTTONUP:
-            if None is self.dragPos:
+            # This can now be handled with a CLICK_COLLISION_EVENT.
+            if None is self.clackPos:
                 arrow = gameMap.objectsOfType( 'Arrow' )[0]
                 wClickPos = viewPort.getWorldCoordinate( self.clickPos )
 
                 # Does the click point collide with a colour that is not the background colour.
-                if viewPort.collisionOfPoint( wClickPos, arrow ):
+                if viewPort.collisionOfPoint( self.clickPos, arrow ):
                     viewPort.playSound( 'Money Ping' )
         elif event.type == COLLISION_EVENT:
-            # print( 'Collision occurred: %s' % event )
-
             if event.obj1.isInteractionTypePair( event.obj2, 'Player', 'Shop=Shop1' ):
                 collisionData = event.collisionData
                 collisionPoint = event.point
@@ -291,24 +285,12 @@ class CandySeller( game.Game ):
                 self.moneyScore += 1
                 viewPort.playMusic()
 
-        # shops = gameMap.objectsOfType( 'Shop' )
-        #
-        # if shops and len( shops ) > 1 and player.collidesWithRect( shops[1] ):
-        #     viewPort.resetCamera()
-        #     player.pushPos( Point( viewPort.halfWidth, viewPort.halfHeight ), offsetOldPos=Point( 0, 20 ) )
-        #     gameMap.changeScene( 'insideShop1' )
-        #     player.moveToScene( 'insideShop1' )
-
         # Update the money score.
         gameMap.score.updateScore( self.moneyScore )
 
         # Wins the game if you get 100 money.
         if self.moneyScore >= 100:
             self.winMode = True
-
-        # Adjust camera if beyond the "camera slack".
-        playerCentre = Point( player.x + int( ( float( player.size ) + 0.5 ) / 2 ), player.y + int( ( float( player.size ) + 0.5 ) / 2 ) )
-        viewPort.adjustCamera( playerCentre )
 
 
     # Update the positions of all the map objects according to the camera and new positions.
