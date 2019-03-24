@@ -41,10 +41,10 @@ MONSTERSIZE = 800    # How big the jumpscare monster is.
 class CandySeller( game.Game ):
     def __init__( self, viewPort ):
         # Set up generic game one time set up.
-        game.Game.__init__( self, 'Candy Seller', 'gameiconc', viewPort )
+        super().__init__( 'Candy Seller', 'gameiconc', viewPort )
 
         # Game one time setup.
-        self.setDrawOrder( 'BackGround', 'Shop', 'Arrow', 'Bush', 'Coin', 'Player', 'Monster', 'Score' )
+        # self.setDrawOrder( 'BackGround', 'Shop', 'Arrow', 'Bush', 'Coin', 'Player', 'Monster', 'Score' )
         self.setCursor()
         viewPort.loadMusic( 'Money Ping.ogg' )
         viewPort.setCameraMovementStyle( game_dynamics.KeyMovementStyle( moveRate=Vector( 20, 12 ) ) )
@@ -134,7 +134,7 @@ class CandySeller( game.Game ):
     def createShops( self, gameMap ):
         for shopNum in range( 1, 4 ):
             shopPos = Point( 140 + ( shopNum - 1 ) * 320, 140 )
-            shop = Shop( shopPos, self.images.shops[shopNum], size=SHOPSIZE, name='Shop' + `shopNum` )
+            shop = Shop( shopPos, self.images.shops[shopNum], size=SHOPSIZE, name='Shop{}'.format( shopNum ) )
             gameMap.addObject( shop )
 
 
@@ -233,7 +233,7 @@ class CandySeller( game.Game ):
         elif event.type == MOUSEBUTTONUP:
             # This can now be handled with a CLICK_COLLISION_EVENT.
             if None is self.clackPos:
-                arrow = gameMap.objectsOfType( 'Arrow' )[0]
+                arrow = gameMap.objectsOfType( go.Arrow )[0]
                 wClickPos = viewPort.getWorldCoordinate( self.clickPos )
 
                 # Does the click point collide with a colour that is not the background colour.
@@ -274,7 +274,7 @@ class CandySeller( game.Game ):
             player.steps = 0
 
         # Check if the player has collided with any money.
-        money = gameMap.objectsOfType( 'Coin' )
+        money = gameMap.objectsOfType( go.Coin )
 
         for ii in range( len( money ) - 1, -1, -1 ):
             coin = money[ii]
