@@ -99,7 +99,7 @@ class CandySeller( game.Game ):
         # Start off with some money on the screen.
         self.createCoins( gameMap, 4 )
 
-        insideShop1 = go.SoftBackGround( ORIGIN, images.ingredients_store, size=WINWIDTH )
+        insideShop1 = go.SoftBackGround( ORIGIN, images.ingredients_store, size=WINWIDTH, positionStyle='top_left' )
         insideShop1Rect = insideShop1.getRect()
         insideShop1Bounds = game_dynamics.RectangleBoundary( insideShop1Rect, grow=-10 )
         gameMap.createScene( 'insideShop1', backGroundColour=SHOP_FLOOR_COLOUR, boundaryStyle=insideShop1Bounds )
