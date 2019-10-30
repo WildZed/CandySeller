@@ -11,8 +11,8 @@ sys.path.append( '../GameEngine' )
 from pygame.locals import *
 from geometry import *
 import viewport, game, game_map, game_dynamics
-from game_objects import *
-from game_constants import *
+import game_objects as go
+import game_constants as gc
 
 
 
@@ -50,16 +50,16 @@ class CandySeller( game.Game ):
         viewPort.setCameraMovementStyle( game_dynamics.KeyMovementStyle( moveRate=Vector( 20, 12 ) ) )
 
 
-    def loadImages( self ):
+    def loadImages( self, useAlpha = True ):
         images = self.images
 
-        images.load( 'man', 'LR' )
-        images.load( 'bush' )
-        images.load( 'ingredients store' )
-        images.load( 'jumpscare monster' )
-        images.load( 'money' )
-        images.load( 'shop', range( 1, 4 ) )
-        images.load( 'arrow', range( 1, 4 ) )
+        images.load( 'man', 'LR', alpha=useAlpha )
+        images.load( 'bush', alpha=useAlpha )
+        images.load( 'ingredients store', alpha=useAlpha )
+        images.load( 'jumpscare monster', alpha=useAlpha )
+        images.load( 'money', alpha=useAlpha )
+        images.load( 'shop', range( 1, 4 ), alpha=useAlpha )
+        images.load( 'arrow', range( 1, 4 ), alpha=useAlpha )
 
 
     # Per game initialisation.
@@ -90,8 +90,8 @@ class CandySeller( game.Game ):
         self.createShops( gameMap )
 
         # Start off with some bushes on the screen.
-        gameMap.addObject( Bush( Point( -200, 400 ), images.bush, size=BUSHSIZE ) )
-        gameMap.addObject( Bush( Point( 928, 400 ), images.bush, size=BUSHSIZE ) )
+        gameMap.addObject( go.Bush( Point( -200, 400 ), images.bush, size=BUSHSIZE ) )
+        gameMap.addObject( go.Bush( Point( 928, 400 ), images.bush, size=BUSHSIZE ) )
 
         # Start off with some arrows on the screen.
         self.createArrows( gameMap )
@@ -99,7 +99,7 @@ class CandySeller( game.Game ):
         # Start off with some money on the screen.
         self.createCoins( gameMap, 4 )
 
-        insideShop1 = SoftBackGround( ORIGIN, images.ingredients_store, size=WINWIDTH )
+        insideShop1 = go.SoftBackGround( ORIGIN, images.ingredients_store, size=WINWIDTH )
         insideShop1Rect = insideShop1.getRect()
         insideShop1Bounds = game_dynamics.RectangleBoundary( insideShop1Rect, grow=-10 )
         gameMap.createScene( 'insideShop1', backGroundColour=SHOP_FLOOR_COLOUR, boundaryStyle=insideShop1Bounds )
@@ -109,7 +109,7 @@ class CandySeller( game.Game ):
 
         gameMap.changeScene( 'shops' )
 
-        gameMap.addOverlay( Score( Point( viewPort.width - 180, 20 ), self.moneyScore ) )
+        gameMap.addOverlay( go.Score( Point( viewPort.width - 180, 20 ), self.moneyScore ) )
 
         self.player = self.createPlayer()
         gameMap.addObject( self.player )
@@ -127,33 +127,34 @@ class CandySeller( game.Game ):
         moveStyle = game_dynamics.KeyMovementStyle( boundaryStyle=playerBounds )
         moveStyle.setMoveRate( MOVERATE )
         moveStyle.setBounceRates( BOUNCERATE, BOUNCEHEIGHT )
+        playerImages = go.ImageCollection( left=images.manL, right=images.manR )
 
-        return Player( playerStartPos, moveStyle, size=MANSIZE, ratio=1.0, imageL=images.manL, imageR=images.manR )
+        return go.Player( playerStartPos, moveStyle, size=MANSIZE, ratio=1.0, image=playerImages )
 
 
     def createShops( self, gameMap ):
         for shopNum in range( 1, 4 ):
             shopPos = Point( 140 + ( shopNum - 1 ) * 320, 140 )
-            shop = Shop( shopPos, self.images.shops[shopNum], size=SHOPSIZE, name='Shop{}'.format( shopNum ) )
+            shop = go.Shop( shopPos, self.images.shops[shopNum], size=SHOPSIZE, name='Shop{}'.format( shopNum ) )
             gameMap.addObject( shop )
 
 
     def createArrows( self, gameMap ):
         for arrowNum in range( 1, 4 ):
             arrowPos = Point( ( arrowNum - 1 ) * 320 + 30, 640 )
-            arrow = Arrow( arrowPos, self.images.arrows[arrowNum], size=ARROWSIZE )
+            arrow = go.Arrow( arrowPos, self.images.arrows[arrowNum], size=ARROWSIZE )
             gameMap.addObject( arrow )
 
 
     def createCoins( self, gameMap, num ):
         for ii in range( num ):
             pos = Point( random.randint( 0, WINWIDTH ), random.randint( 400, 500 ) )
-            coin = Coin( pos, self.images.money, size=MONEYSIZE )
+            coin = go.Coin( pos, self.images.money, size=MONEYSIZE )
             gameMap.addObject( coin )
 
 
     def createMonster( self ):
-        return Monster( Point( 0, 0 ), self.gameMap.images.jumpscare_monster, size=MONSTERSIZE, ratio=1.0 )
+        return go.Monster( Point( 0, 0 ), self.gameMap.images.jumpscare_monster, size=MONSTERSIZE, ratio=1.0 )
 
 
     # Could move cursor description into a file and read from there.
@@ -239,7 +240,7 @@ class CandySeller( game.Game ):
                 # Does the click point collide with a colour that is not the background colour.
                 if viewPort.collisionOfPoint( self.clickPos, arrow ):
                     viewPort.playSound( 'Money Ping' )
-        elif event.type == COLLISION_EVENT:
+        elif event.type == gc.COLLISION_EVENT:
             if event.obj1.isInteractionTypePair( event.obj2, 'Player', 'Shop=Shop1' ):
                 collisionData = event.collisionData
                 collisionPoint = event.point
