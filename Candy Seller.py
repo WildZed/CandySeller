@@ -101,7 +101,7 @@ class CandySeller( game.Game ):
 
         insideShop1 = go.SoftBackGround( ORIGIN, images.ingredients_store, size=WINWIDTH, positionStyle='top_left' )
         insideShop1Rect = insideShop1.getRect()
-        insideShop1Bounds = game_dynamics.RectangleBoundary( insideShop1Rect, grow=-10 )
+        insideShop1Bounds = game_dynamics.RectangleBoundary( insideShop1Rect, grow=-60 )
         gameMap.createScene( 'insideShop1', backGroundColour=SHOP_FLOOR_COLOUR, boundaryStyle=insideShop1Bounds )
         gameMap.changeScene( 'insideShop1' )
         gameMap.addObject( insideShop1 )
