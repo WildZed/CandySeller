@@ -10,7 +10,9 @@ sys.path.append( '../GameEngine' )
 
 from pygame.locals import *
 from geometry import *
-import viewport, game, game_map, game_dynamics
+import viewport, game
+import game_map as gm
+import game_dynamics as gd
 import game_objects as go
 import game_constants as gc
 
@@ -47,7 +49,7 @@ class CandySeller( game.Game ):
         # self.setDrawOrder( 'BackGround', 'Shop', 'Arrow', 'Bush', 'Coin', 'Player', 'Monster', 'Score' )
         self.setCursor()
         viewPort.loadMusic( 'Money Ping.ogg' )
-        viewPort.setCameraMovementStyle( game_dynamics.KeyMovementStyle( moveRate=Vector( 20, 12 ) ) )
+        viewPort.setCameraMovementStyle( gd.KeyMovementStyle( moveRate=Vector( 20, 12 ) ) )
 
 
     def loadImages( self, useAlpha = True ):
@@ -101,7 +103,7 @@ class CandySeller( game.Game ):
 
         insideShop1 = go.SoftBackGround( ORIGIN, images.ingredients_store, size=WINWIDTH, positionStyle='top_left' )
         insideShop1Rect = insideShop1.getRect()
-        insideShop1Bounds = game_dynamics.RectangleBoundary( insideShop1Rect, grow=-60 )
+        insideShop1Bounds = gd.RectangleBoundary( insideShop1Rect, grow=-60 )
         gameMap.createScene( 'insideShop1', backGroundColour=SHOP_FLOOR_COLOUR, boundaryStyle=insideShop1Bounds )
         gameMap.changeScene( 'insideShop1' )
         gameMap.addObject( insideShop1 )
@@ -122,9 +124,9 @@ class CandySeller( game.Game ):
         playerStartPos = Point( viewPort.halfWidth, viewPort.halfHeight )
 
         # Sets up the movement style of the player.
-        # playerBounds = game_dynamics.RectangleBoundary( Rectangle( Point( 0, 220 ), Point( 900, 550 ) ) )
-        playerBounds = game_dynamics.CollisionBoundary()
-        moveStyle = game_dynamics.KeyMovementStyle( boundaryStyle=playerBounds )
+        # playerBounds = gd.RectangleBoundary( Rectangle( Point( 0, 220 ), Point( 900, 550 ) ) )
+        playerBounds = gd.CollisionBoundary()
+        moveStyle = gd.KeyMovementStyle( boundaryStyle=playerBounds )
         moveStyle.setMoveRate( MOVERATE )
         moveStyle.setBounceRates( BOUNCERATE, BOUNCEHEIGHT )
         playerImages = go.ImageCollection( left=images.manL, right=images.manR )
@@ -222,8 +224,7 @@ class CandySeller( game.Game ):
             elif event.key is K_q:
                 # Releases the jumpscare if you press 'q'.
                 viewPort.playSound( "Jumpscare V2" )
-                monster = self.createMonster()
-                gameMap.addSprite( monster )
+                gameMap.addObject( self.createMonster() )
         elif event.type == KEYUP:
             if event.key is K_q:
                 gameMap.deleteAllObjectsOfType( 'Monster' )
